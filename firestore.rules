@@ -1,0 +1,123 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.caregiverId;
+    }
+    
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid;
+    }
+    
+    function uidNotModified() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid;
+    }
+    
+    function caregiverIdUnchanged() {
+      return !('caregiverId' in request.resource.data) || request.resource.data.caregiverId == request.auth.uid;
+    }
+    
+    function caregiverIdNotModified() {
+      return !('caregiverId' in request.resource.data) || request.resource.data.caregiverId == resource.data.caregiverId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'email', 'role', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
+             data.email is string && isValidEmail(data.email) && data.email.size() < 150 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100)) &&
+             data.role in ['caregiver', 'admin'] &&
+             (!('subscriptionStatus' in data) || data.subscriptionStatus in ['free', 'unlimited_family']) &&
+             data.createdAt is string;
+    }
+
+    function isValidSenior(data) {
+      return hasRequiredFields(['caregiverId', 'name', 'createdAt']) &&
+             data.caregiverId is string && data.caregiverId.size() > 0 && data.caregiverId.size() < 100 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() < 20)) &&
+             (!('timezone' in data) || (data.timezone is string && data.timezone.size() < 50)) &&
+             data.createdAt is string;
+    }
+
+    function isValidDevice(data) {
+      return hasRequiredFields(['seniorId', 'caregiverId', 'type', 'name', 'status']) &&
+             data.seniorId is string && data.seniorId.size() > 0 && data.seniorId.size() < 100 &&
+             data.caregiverId is string && data.caregiverId.size() > 0 && data.caregiverId.size() < 100 &&
+             data.type in ['tablet', 'tv', 'printer', 'wifi', 'health', 'other'] &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.status in ['online', 'offline', 'needs_attention'] &&
+             (!('lastChecked' in data) || data.lastChecked is string);
+    }
+
+    function isValidBooking(data) {
+      return hasRequiredFields(['caregiverId', 'seniorId', 'issueType', 'scheduledTime', 'status', 'createdAt']) &&
+             data.caregiverId is string && data.caregiverId.size() > 0 && data.caregiverId.size() < 100 &&
+             data.seniorId is string && data.seniorId.size() > 0 && data.seniorId.size() < 100 &&
+             data.issueType is string && data.issueType.size() > 0 && data.issueType.size() < 50 &&
+             data.scheduledTime is string && data.scheduledTime.size() > 0 && data.scheduledTime.size() < 50 &&
+             data.status in ['pending', 'confirmed', 'completed', 'cancelled'] &&
+             (!('conciergeName' in data) || (data.conciergeName is string && data.conciergeName.size() < 100)) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() < 1000)) &&
+             data.createdAt is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && uidUnchanged() && request.resource.data.role == 'caregiver';
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && uidNotModified() && request.resource.data.role == resource.data.role;
+      allow delete: if false; // Users cannot delete their own accounts directly for now
+    }
+
+    match /seniors/{seniorId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidSenior(request.resource.data) && caregiverIdUnchanged();
+      allow update: if isDocOwner() && isValidSenior(request.resource.data) && caregiverIdNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    match /devices/{deviceId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidDevice(request.resource.data) && caregiverIdUnchanged();
+      allow update: if isDocOwner() && isValidDevice(request.resource.data) && caregiverIdNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidBooking(request.resource.data) && caregiverIdUnchanged();
+      allow update: if isDocOwner() && isValidBooking(request.resource.data) && caregiverIdNotModified();
+      allow delete: if isDocOwner();
+    }
+  }
+}

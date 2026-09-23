@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Public Sans", sans-serif;
+  --font-label: "Public Sans", sans-serif;
+
+  --color-primary-fixed: #68fadd;
+  --color-on-primary-container: #00473c;
+  --color-on-primary: #ffffff;
+  --color-surface: #f9f9f6;
+  --color-inverse-primary: #44ddc1;
+  --color-surface-variant: #e2e3e0;
+  --color-surface-tint: #006b5c;
+  --color-on-secondary-container: #49617f;
+  --color-tertiary-fixed: #ffdbd2;
+  --color-on-tertiary-container: #74220b;
+  --color-on-primary-fixed: #00201a;
+  --color-on-tertiary-fixed-variant: #7f2a13;
+  --color-surface-container-low: #f4f4f1;
+  --color-surface-container: #eeeeeb;
+  --color-on-tertiary-fixed: #3c0800;
+  --color-surface-container-highest: #e2e3e0;
+  --color-on-background: #1a1c1b;
+  --color-on-error-container: #93000a;
+  --color-on-error: #ffffff;
+  --color-on-secondary: #ffffff;
+  --color-primary-fixed-dim: #44ddc1;
+  --color-secondary-fixed: #d2e4ff;
+  --color-tertiary-container: #fe896a;
+  --color-tertiary: #9f4128;
+  --color-surface-container-high: #e8e8e5;
+  --color-outline: #6c7a76;
+  --color-secondary-fixed-dim: #b0c8eb;
+  --color-primary: #006b5c;
+  --color-tertiary-fixed-dim: #ffb4a1;
+  --color-surface-dim: #dadad7;
+  --color-on-tertiary: #ffffff;
+  --color-error: #ba1a1a;
+  --color-surface-container-lowest: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-primary-fixed-variant: #005145;
+  --color-inverse-on-surface: #f1f1ee;
+  --color-secondary: #49607e;
+  --color-inverse-surface: #2f312f;
+  --color-on-secondary-fixed: #001c37;
+  --color-on-surface-variant: #3c4a46;
+  --color-primary-container: #00bfa5;
+  --color-surface-bright: #f9f9f6;
+  --color-outline-variant: #bbcac4;
+  --color-on-surface: #1a1c1b;
+  --color-on-secondary-fixed-variant: #314865;
+  --color-background: #f9f9f6;
+  --color-secondary-container: #c4dcff;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-body antialiased;
+    min-height: max(884px, 100dvh);
+  }
+
+  h1, h2, h3 {
+    @apply font-headline;
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+  }
+}

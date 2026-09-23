@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A caregiver or adult child who manages the account and books sessions.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["caregiver", "admin"] },
+        "subscriptionStatus": { "type": "string", "enum": ["free", "unlimited_family"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    },
+    "Senior": {
+      "title": "Senior",
+      "description": "The parent or senior receiving tech support.",
+      "type": "object",
+      "properties": {
+        "caregiverId": { "type": "string", "description": "UID of the caregiver who manages this senior" },
+        "name": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "timezone": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["caregiverId", "name", "createdAt"]
+    },
+    "Device": {
+      "title": "Device",
+      "description": "A device owned by the senior.",
+      "type": "object",
+      "properties": {
+        "seniorId": { "type": "string" },
+        "caregiverId": { "type": "string" },
+        "type": { "type": "string", "enum": ["tablet", "tv", "printer", "wifi", "health", "other"] },
+        "name": { "type": "string" },
+        "status": { "type": "string", "enum": ["online", "offline", "needs_attention"] },
+        "lastChecked": { "type": "string", "format": "date-time" }
+      },
+      "required": ["seniorId", "caregiverId", "type", "name", "status"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "A scheduled tech support session.",
+      "type": "object",
+      "properties": {
+        "caregiverId": { "type": "string" },
+        "seniorId": { "type": "string" },
+        "issueType": { "type": "string" },
+        "scheduledTime": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "completed", "cancelled"] },
+        "conciergeName": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["caregiverId", "seniorId", "issueType", "scheduledTime", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Caregiver profiles"
+    },
+    "/seniors/{seniorId}": {
+      "schema": { "$ref": "#/entities/Senior" },
+      "description": "Senior profiles managed by caregivers"
+    },
+    "/devices/{deviceId}": {
+      "schema": { "$ref": "#/entities/Device" },
+      "description": "Devices owned by seniors"
+    },
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/Booking" },
+      "description": "Tech support sessions"
+    }
+  }
+}
